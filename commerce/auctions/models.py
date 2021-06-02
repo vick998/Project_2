@@ -7,9 +7,11 @@ class User(AbstractUser):
 
 class AuctionListing(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	user_name = models.ForeignKey(User, on_delete = models.CASCADE)
+	user_name = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname = models.CharField(max_length = 50)
 	listingdesc = models.CharField(max_length = 200)
+	listingurl = models.CharField(max_length = 100)
+	listingcategory = models CharField(max_length = 20)
 	initbid = models.IntegerField()
 
 	def __str__(self):
@@ -17,8 +19,8 @@ class AuctionListing(models.Model):
 
 class AuctionBid(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	username_bid = models.ForeignKey(User, on_delete = models.CASCADE, blank = True)
-	listingname_bid = models.CharField(max_length = 50, default = "Epoxy")
+	username_bid = models.ForeignKey(User, on_delete = models.CASCADE, blank = True, default = "victor")
+	listingname_bid = models.CharField(max_length = 50, blank = True)
 	followbid = models.IntegerField()
 
 	def __str__(self):
@@ -26,9 +28,17 @@ class AuctionBid(models.Model):
 
 class ListingComment(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	username_comm = models.ForeignKey(User, on_delete = models.CASCADE)
-	listingname_comm = models.CharField(max_length = 50)
+	username_comm = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
+	listingname_comm = models.CharField(max_length = 50, blank = True)
 	listing_comm = models.CharField(max_length = 100)
 
 	def __str__(self):
 		return f"{self.username_comm} has commented '{self.listing_comm}' on listing {self.listingname_comm}"
+
+class ListingWishlist(models.Model):
+	id = models.BigAutoField(primary_key=True)
+	username_watchlist = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
+	listingname_watchlist = models.CharField(max_length = 50, blank = True)
+
+	def __str__(self):
+		return f"{self.username_wishlist}'s wishlist contains the entries '{self.listingname_wishlist}'"
