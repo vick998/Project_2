@@ -1,0 +1,33 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div>
+    {% if user.is_authenticated %}
+	<form action="{% url 'listentry' %}" method="post">
+        {% csrf_token %}
+        {% if message %}
+        	<div>{{ message }}</div>
+        {% endif %}
+        <div class="form-group">
+            <input class="form-control" autofocus type="text" name="listingname" placeholder="Listing Name">
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="text" name="listingdesc" placeholder="Description">
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="text" name="listingcategory" placeholder="Category">
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="text" name="listingurl" placeholder="Image URL">
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="text" name="initbid" placeholder="Initial price of item">
+        </div>
+        <input class="btn btn-primary" type="submit" value="Register">
+    </form>
+    {% else %}
+    Not signed in.
+    {% endif %}
+</div>
+
+{% endblock %}

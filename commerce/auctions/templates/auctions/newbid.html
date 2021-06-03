@@ -1,0 +1,21 @@
+{% extends "auctions\layout.html" %}
+
+{% block body %}
+<div>
+	<h1>{{ listingname }}</h1>
+	<div>{{ listingcategory }}</div>
+	<div>{{ listingdesc }}</div>
+	<div>{{ initbid }}</div>
+	<img src="{{ listingurl }}">
+	<form action="{% url 'listingpage' %}" method="post">
+        {% if user.is_authenticated %}
+        <input class="btn btn-primary" type="submit" value="Close bidding">
+        {% else if %}
+        <div class="form-group">
+            <input class="form-control" type="text" name="newbid" placeholder="Your bid">
+        </div>
+        <input class="btn btn-primary" type="submit" value="Register bid">
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

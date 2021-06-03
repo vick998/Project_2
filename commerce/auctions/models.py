@@ -35,10 +35,10 @@ class ListingComment(models.Model):
 	def __str__(self):
 		return f"{self.username_comm} has commented '{self.listing_comm}' on listing {self.listingname_comm}"
 
-class ListingWishlist(models.Model):
+class ListingWatchlist(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	username_watchlist = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname_watchlist = models.CharField(max_length = 50, blank = True)
 
 	def __str__(self):
-		return f"{self.username_wishlist}'s wishlist contains the entries '{self.listingname_wishlist}'"
+		return f"{self.username_watchlist}'s wishlist contains the entries '{self.listingname_watchlist}'"
