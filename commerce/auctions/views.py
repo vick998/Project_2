@@ -59,7 +59,25 @@ def register(request):
             return render(request, "auctions/register.html", {
                 "message": "Username already taken."
             })
-        login(request, user)
+        login(request, user) 
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+def listentry(request):
+    if request.method == "POST":
+        listingname = request.POST["listingname"]
+        listingdesc = request.POST["listingdesc"]
+        listingcategory = request.POST["listingcategory"]
+        listingurl = request.POST["listingurl"]
+        initbid = request.POST["initbid"]
+        try:
+            listing = AuctionListing.objects.create(user, listingname, listingdesc, listingurl, listingcategory, initbid)
+            listing.save()
+        except IntegrityError:
+            return render(request, "auctions/listingentry.html", {
+                "message": "Listing already exists."
+            })
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        return render(request, "auctions/listingentry.html")
