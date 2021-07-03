@@ -11,7 +11,7 @@ class AuctionListing(models.Model):
 	listingname = models.CharField(max_length = 50)
 	listingdesc = models.CharField(max_length = 200)
 	listingurl = models.CharField(max_length = 100)
-	listingcategory = models CharField(max_length = 20)
+	listingcategory = models.CharField(max_length = 20)
 	initbid = models.IntegerField()
 
 	def __str__(self):
