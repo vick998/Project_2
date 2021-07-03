@@ -3,10 +3,10 @@ from django.db import models
 
 
 class User(AbstractUser):
-	id = models.BigAutoField(primary_key=True)
+	user_id = models.BigAutoField(primary_key=True)
 
 class AuctionListing(models.Model):
-	id = models.BigAutoField(primary_key=True)
+	listing_id = models.BigAutoField(primary_key=True)
 	user_name = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname = models.CharField(max_length = 50)
 	listingdesc = models.CharField(max_length = 200)
@@ -18,7 +18,7 @@ class AuctionListing(models.Model):
 		return f"{self.user_name} is selling {self.listingname} for {self.initbid}" 
 
 class AuctionBid(models.Model):
-	id = models.BigAutoField(primary_key=True)
+	bid_id = models.BigAutoField(primary_key=True)
 	username_bid = models.ForeignKey(User, on_delete = models.CASCADE, blank = True, default = "victor")
 	listingname_bid = models.CharField(max_length = 50, blank = True)
 	followbid = models.IntegerField()
@@ -27,7 +27,7 @@ class AuctionBid(models.Model):
 		return f"A bid of {self.followbid} has been entered for {self.listingname_bid} by {self.username_bid}"
 
 class ListingComment(models.Model):
-	id = models.BigAutoField(primary_key=True)
+	comm_id = models.BigAutoField(primary_key=True)
 	username_comm = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname_comm = models.CharField(max_length = 50, blank = True)
 	listing_comm = models.CharField(max_length = 100)
@@ -36,7 +36,7 @@ class ListingComment(models.Model):
 		return f"{self.username_comm} has commented '{self.listing_comm}' on listing {self.listingname_comm}"
 
 class ListingWatchlist(models.Model):
-	id = models.BigAutoField(primary_key=True)
+	watchlist_id = models.BigAutoField(primary_key=True)
 	username_watchlist = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname_watchlist = models.CharField(max_length = 50, blank = True)
 
