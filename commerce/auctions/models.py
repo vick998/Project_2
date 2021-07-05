@@ -9,9 +9,9 @@ class AuctionListing(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	user_name = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname = models.CharField(max_length = 50)
-	listingdesc = models.CharField(max_length = 200)
-	listingurl = models.CharField(max_length = 100)
-	listingcategory = models.CharField(max_length = 20)
+	listingdesc = models.CharField(max_length = 200, blank = True)
+	listingurl = models.CharField(max_length = 100, blank = True)
+	listingcategory = models.CharField(max_length = 20, blank = True)
 	initbid = models.IntegerField()
 
 	def __str__(self):

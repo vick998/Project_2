@@ -1,0 +1,18 @@
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from auctions.models import User, AuctionListing, AuctionBid, ListingComment
+q1 = User.objects.get(id=1)
+q2 = User.objects.get(id=2)
+q3 = User.objects.get(id=3)
+a1 = AuctionListing(user_name=q1, listingname="Epoxy1", listingdesc="dawdawdaw", listingurl="awd23f", listingcategory="Chairs", initbid=90)
+a2 = AuctionListing(user_name=q1, listingname="Epoxy2", listingdesc="awdawdawd", listingurl="awd213e", listingcategory="Lamps", initbid=30)
+a3 = AuctionListing(user_name=q1, listingname="Epoxy3", listingdesc="awdawda21", listingurl="21e31fe", listingcategory="Boats", initbid=190)
+b1 = ListingComment(username_comm=q2, listingname_comm="Epoxy1", listing_comm="Nice chair. Colorful. Dog likes it.")
+b2 = ListingComment(username_comm=q3, listingname_comm="Epoxy2", listing_comm="Been looking for a lamp like that since we got the house.")
+b3 = ListingComment(username_comm=q3, listingname_comm="Epoxy3", listing_comm="Now that is a retirement present.")
+c1 = AuctionBid(username_bid=q2, listingname_bid="Epoxy1", followbid=92)
+c2 = AuctionBid(username_bid=q3, listingname_bid="Epoxy2", followbid=37)
+c3 = AuctionBid(username_bid=q3, listingname_bid="Epoxy3", followbid=210)
+q1.save()
+q2.save()
+q3.save()

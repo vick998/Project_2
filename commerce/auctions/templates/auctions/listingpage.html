@@ -7,10 +7,10 @@
 	<div>{{ listing.listingdesc }}</div>
 	<div>{{ listing.initbid }}</div>
 	<img src="{{ listingurl }}">
-	<form action="{% url 'listingpage' %}" method="post">
+<!-- 	<form action="{% url 'listingpage' %}" method="post">
         {% if user_match %}
         <input class="btn btn-primary" type="submit" value="Close bidding">
-        {% else if %}
+        {% else %}
         <div class="form-group">
             <input class="form-control" type="text" name="newbid" placeholder="Your bid">
         </div>
@@ -19,6 +19,6 @@
         {% if message %}
             <div>{{ message }}</div>
         {% endif %}
-    </form>
+    </form> -->
 </div>
 {% endblock %}
