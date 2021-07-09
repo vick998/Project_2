@@ -1,20 +1,22 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+{% if user.is_authenticated %}
 <div>
-    {% if user.is_authenticated %}
 	{% for listing in listings %}
     <div>
-        <a href="{% url 'listingpage' listing.listing_id %}"><div>{{ listing.listingname }}</div></a>
+        <a href="{% url 'listingpage' listing.id %}">
+        <div>{{ listing }}</div></a>
         <div>{{ listing.listingcategory }}</div>
-        <div>{{ listing.listingdesc }}</div>
         <div>{{ listing.initbid }}</div>
         <img src="{{ listing.listingurl }}">
     </div>
     {% endfor %}
-    {% else %}
-    <div>Not signed in.</div>
+    {% if message %}
+    <div>
+        {{ message }}
+    </div>
     {% endif %}
 </div>
-
+{% endif %}
 {% endblock %}

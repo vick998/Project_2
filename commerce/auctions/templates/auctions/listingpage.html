@@ -3,11 +3,20 @@
 {% block body %}
 <div>
 	<h1>{{ listing.listingname }}</h1>
-	<div>{{ listing.listingcategory }}</div>
-	<div>{{ listing.listingdesc }}</div>
-	<div>{{ listing.initbid }}</div>
+    <div>Owner : {{ listing.user_name }}</div>
+	<div>Category : {{ listing.listingcategory }}</div>
+	<div>Description : {{ listing.listingdesc }}</div>
+	<div>Current highest bid : {{ listing.initbid }}</div>
 	<img src="{{ listingurl }}">
-<!-- 	<form action="{% url 'listingpage' %}" method="post">
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+    {% if user.is_authenticated %}
+	<form action="{% url 'listingpage' listing.id %}" method="post">
+        {% csrf_token %}
+        {% if closed %}
+        <div>Auction closed at {{ listing.initbid }}</div>
+        {% else %}
         {% if user_match %}
         <input class="btn btn-primary" type="submit" value="Close bidding">
         {% else %}
@@ -16,9 +25,18 @@
         </div>
         <input class="btn btn-primary" type="submit" value="Register bid">
         {% endif %}
-        {% if message %}
-            <div>{{ message }}</div>
         {% endif %}
-    </form> -->
+    </form>
+    <form action="{% url 'watchlist' listing.id %}" method="post">
+        {% csrf_token %}
+        <input class="btn btn-primary" type="submit" value="Add to watchlist">
+    </form>
+    {% endif %}
+    <div>Previous bids</div>
+    {% for auctionbid0 in auctionbidall %}
+    {% if auctionbid0.listingname_bid == listing.listingname %}
+        <div>{{ auctionbid0 }}</div>
+    {% endif %}
+    {% endfor %}
 </div>
 {% endblock %}

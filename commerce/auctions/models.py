@@ -12,6 +12,7 @@ class AuctionListing(models.Model):
 	listingdesc = models.CharField(max_length = 200, blank = True)
 	listingurl = models.CharField(max_length = 100, blank = True)
 	listingcategory = models.CharField(max_length = 20, blank = True)
+	liquid = models.BooleanField(default = True)
 	initbid = models.IntegerField()
 
 	def __str__(self):
@@ -21,6 +22,7 @@ class AuctionBid(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	username_bid = models.ForeignKey(User, on_delete = models.CASCADE, blank = True, default = "victor")
 	listingname_bid = models.CharField(max_length = 50, blank = True)
+	listingnameid_bid =  models.IntegerField(default = 0)
 	followbid = models.IntegerField()
 
 	def __str__(self):
@@ -30,6 +32,7 @@ class ListingComment(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	username_comm = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname_comm = models.CharField(max_length = 50, blank = True)
+	listingnameid_comm =  models.IntegerField(default = 0)
 	listing_comm = models.CharField(max_length = 100)
 
 	def __str__(self):
@@ -39,6 +42,7 @@ class ListingWatchlist(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	username_watchlist = models.ForeignKey(User, on_delete = models.CASCADE, default = "victor")
 	listingname_watchlist = models.CharField(max_length = 50, blank = True)
+	listingnameid_watchlist =  models.IntegerField(default = 0)
 
 	def __str__(self):
 		return f"{self.username_watchlist}'s wishlist contains the entries '{self.listingname_watchlist}'"

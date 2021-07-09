@@ -5,7 +5,9 @@
 
     <ul>
         {% for listing in listings %}
+        {% if listing.liquid %}
         <li><a href="{% url 'listingpage' listing.id %}">{{ listing }}</a></li>
+        {% endif %}
         {% endfor %}
     </ul>
 {% endblock %}

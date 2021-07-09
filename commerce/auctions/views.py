@@ -65,74 +65,110 @@ def register(request):
         return render(request, "auctions/register.html")
 
 def listentry(request):
+    listingentries = list(AuctionListing.objects.all())
     if request.method == "POST":
-        listingname = request.POST["listingname"]
-        listingdesc = request.POST["listingdesc"]
-        listingcategory = request.POST["listingcategory"]
-        listingurl = request.POST["listingurl"]
-        initbid = request.POST["initbid"]
+        listingdata = []
+        listingdata.append(request.user)
+        listingdata.append(request.POST["listingname"])
+        listingdata.append(request.POST["listingdesc"])
+        listingdata.append(request.POST["listingcategory"])
+        listingdata.append(request.POST["listingurl"])
+        listingdata.append(request.POST["initbid"])
         try:
-            listing = AuctionListing.objects.create(user, listingname, listingdesc, listingurl, listingcategory, initbid)
-            listing.save()
+            listing = AuctionListing(user_name=listingdata[0], listingname=listingdata[1], listingdesc=listingdata[2],  listingcategory=listingdata[3], listingurl=listingdata[4], initbid=listingdata[5])
+            k0 = 0
+            for lentry in listingentries:
+                listingdata0 = [lentry.user_name, lentry.listingname, lentry.listingdesc, lentry.listingcategory, lentry.listingurl, lentry.initbid]
+                k = 0
+                for i in range(6):
+                    if listingdata[i]==listingdata0[i]:
+                        k += 1
+                if k == 6:
+                    k0 += 1
+                else: 
+                    k0 += 0
+            if k0 != 0:
+                return render(request, "auctions/listingentry.html", {
+                    "message": "Listing already exists."
+                    })
+            else:
+                listing.save()
+                # redo for liquidity
         except IntegrityError:
             return render(request, "auctions/listingentry.html", {
-                "message": "Listing already exists."
+                # "message": "Listing already exists."
             })
-        # return HttpResponseRedirect(reverse("listingpage", args=(listing.id,)))
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(reverse("listingpage", args=(listing.id,)))
+        # return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/listingentry.html")
 
 def listingpage(request, listing_id):
     listing = AuctionListing.objects.get(id=listing_id)
-    # if request.user.is_authenticated:
-        # if request.method == "POST":
-            # if AuctionListing.user_name == request.user.username:
-                # username_bid = request.user.username
-                # listingname_bid = listing.listingname
-                # followbid = request.POST["newbid"]
-                # try:
-                #     auctionbid = AuctionBid.objects.create(username_bid, listingname_bid, followbid)
-                #     auctionbid.save()
-                #     return HttpResponseRedirect(reverse("index"))
-                # except IntegrityError:
-                #     return render(request, "auctions/listingpage.html", {
-                #         "listing": listing,
-                #         "message": "Bid already entered."
-                #     })
-            # else:
-            #     return render(request, "auctions/listingpage.html", {
-            #         "listing": listing,
-            #         "message": "Auction closed by owner"
-            #     })
-        # else:
-            # if AuctionListing.user_name == request.user.username:
-    return render(request, "auctions/listingpage.html", {
-            "listing": listing,
-            "user_match" : True
-        })
-            # else:
-            #     return render(request, "auctions/listingpage.html", {
-            #         "listing": listing,
-            #         "user_match" : False
-            #         })
-    # else:
-    #     return HttpResponseRedirect(reverse("index"))    
-
-def watchlist(request):
-    listings = list(AuctionListing.objects.all())
-    listingspec = []
-    for listing in listings:
-        if user.username == listing.user_name:
-            listingspec.append(listing)
-    if len(listingspec) == 0:
-        return render(request, "auctions/watchlist.html",{
-            "message":"No listings entered"
-            })
+    auctionbidall = list(AuctionBid.objects.all())
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            if listing.user_name != request.user:
+                username_bid_v = request.user
+                listingname_bid_v = listing.listingname
+                followbid_v = request.POST["newbid"]
+                try:
+                    auctionbid = AuctionBid.objects.create(username_bid=username_bid_v, listingname_bid=listingname_bid_v, followbid=followbid_v)
+                    auctionbid.save()
+                    if int(auctionbid.followbid) > int(listing.initbid) :
+                        listing.initbid = auctionbid.followbid
+                        listing.save()
+                except IntegrityError:
+                    return HttpResponseRedirect(reverse("index"))
+                return render(request, "auctions/listingpage.html", {
+                    "listing": listing,
+                    "auctionbidall" : list(AuctionBid.objects.all()),
+                    "message": "Your bid is " + auctionbid.followbid
+                })
+            else:
+                listing.liquid = False
+                listing.save()
+                return render(request, "auctions/listingpage.html", {
+                    "listing": listing,
+                    "auctionbidall" : list(AuctionBid.objects.all()),
+                    "closed" : True,
+                    "message": "Auction closed by owner"
+                })
+        else:
+            if listing.user_name == request.user:
+                return render(request, "auctions/listingpage.html", {
+                    "listing": listing,
+                    "auctionbidall" : list(AuctionBid.objects.all()),
+                    "user_match" : True
+                    })
+            else:
+                return render(request, "auctions/listingpage.html", {
+                    "listing": listing,
+                    "auctionbidall" : list(AuctionBid.objects.all()),
+                    "user_match" : False
+                    })
     else:
-        return render(request, "auctions/watchlist.html",{
-            "listings":listingspec
-            })
+        return HttpResponseRedirect(reverse("index"))    
+
+def watchlist(request, listing_id):
+    if request.method == "POST":
+        listing = AuctionListing.objects.get(id = listing_id)
+        watchlist0 = ListingWatchlist(username_watchlist= request.user ,listingname_watchlist= listing.listingname,listingnameid_watchlist= listing.id)
+        watchlist0.save()
+    else:
+        watchlist = list(ListingWatchlist.objects.all())
+        wuser = []
+        for w in watchlist:
+            if request.user == w.username_watchlist:
+                wuser.append(w)
+        if len(wuser) == 0:
+            return render(request, "auctions/watchlist.html",{
+                "message":"No listings entered"
+                })
+        else:
+            return render(request, "auctions/watchlist.html",{
+                "listings": wuser
+                })
 
 def category(request):
     return render(request, "auctions/category.html", {
