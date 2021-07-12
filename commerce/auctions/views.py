@@ -3,8 +3,23 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django import forms
 
 from .models import AuctionListing, AuctionBid, ListingComment, ListingWatchlist
+
+class WatchlistForm(forms.Form):
+    stvw = forms.BooleanField(initial=False)
+
+class BidForm(forms.Form):
+    stvb = forms.IntegerField(label="newbid")
+
+class ListingForm(forms.Form):
+    stvname = forms.CharField()
+    stvdesc = forms.CharField()
+    stvcat = forms.CharField()
+    stvurl = forms.CharField()
+    stvbid = forms.IntegerField()
+
 
 
 def index(request):
@@ -74,30 +89,24 @@ def listentry(request):
         listingdata.append(request.POST["listingcategory"])
         listingdata.append(request.POST["listingurl"])
         listingdata.append(request.POST["initbid"])
-        try:
-            listing = AuctionListing(user_name=listingdata[0], listingname=listingdata[1], listingdesc=listingdata[2],  listingcategory=listingdata[3], listingurl=listingdata[4], initbid=listingdata[5])
-            k0 = 0
-            for lentry in listingentries:
-                listingdata0 = [lentry.user_name, lentry.listingname, lentry.listingdesc, lentry.listingcategory, lentry.listingurl, lentry.initbid]
-                k = 0
-                for i in range(6):
-                    if listingdata[i]==listingdata0[i]:
-                        k += 1
-                if k == 6:
-                    k0 += 1
-                else: 
-                    k0 += 0
-            if k0 != 0:
-                return render(request, "auctions/listingentry.html", {
-                    "message": "Listing already exists."
-                    })
-            else:
-                listing.save()
-                # redo for liquidity
-        except IntegrityError:
+        # WIP, forms could be necessary
+        listing = AuctionListing(user_name=listingdata[0], listingname=listingdata[1], listingdesc=listingdata[2],  listingcategory=listingdata[3], listingurl=listingdata[4], initbid=listingdata[5])
+        k0 = 0
+        for lentry in listingentries:
+            listingdata0 = [lentry.user_name, lentry.listingname, lentry.listingdesc, lentry.listingcategory, lentry.listingurl, lentry.initbid]
+            k = 0
+            for i in range(0,len(listingdata)):
+                if listingdata[i] == listingdata0[i]:
+                    k += 1
+            if k == 6:
+                k0 += 1
+        if k0 != 0:
             return render(request, "auctions/listingentry.html", {
-                # "message": "Listing already exists."
-            })
+                   "message": "Listing already exists."
+                    })
+        else:
+                listing.save()
+            # redo for liquidity
         return HttpResponseRedirect(reverse("listingpage", args=(listing.id,)))
         # return HttpResponseRedirect(reverse("index"))
     else:
@@ -108,10 +117,20 @@ def listingpage(request, listing_id):
     auctionbidall = list(AuctionBid.objects.all())
     if request.user.is_authenticated:
         if request.method == "POST":
+            wform = WatchlistForm(request.POST)
+            bform = BidForm(request.POST)
+            
             if listing.user_name != request.user:
+                # attempt to get wishlist form working, needs actual django forms to work
+                # if request.POST["watchlist"] == "Add to watchlist":
+                #     listing = AuctionListing.objects.get(id = listing_id)
+                #     watchlist0 = ListingWatchlist(username_watchlist= request.user ,listingname_watchlist= listing.listingname,listingnameid_watchlist= listing.id)
+                #     watchlist0.save()
+                #     return HttpResponseRedirect(reverse("listingpage", args=(listing.id,)))
+                # else:
                 username_bid_v = request.user
                 listingname_bid_v = listing.listingname
-                followbid_v = request.POST["newbid"]
+                followbid_v = request.POST.get("newbid")
                 try:
                     auctionbid = AuctionBid.objects.create(username_bid=username_bid_v, listingname_bid=listingname_bid_v, followbid=followbid_v)
                     auctionbid.save()
@@ -122,56 +141,69 @@ def listingpage(request, listing_id):
                     return HttpResponseRedirect(reverse("index"))
                 return render(request, "auctions/listingpage.html", {
                     "listing": listing,
+                    "bform" : BidForm(),
+                    "wform" : WatchlistForm(),
                     "auctionbidall" : list(AuctionBid.objects.all()),
                     "message": "Your bid is " + auctionbid.followbid
-                })
+                    })
             else:
                 listing.liquid = False
                 listing.save()
                 return render(request, "auctions/listingpage.html", {
                     "listing": listing,
+                    "bform" : BidForm(),
+                    "wform" : WatchlistForm(),
                     "auctionbidall" : list(AuctionBid.objects.all()),
                     "closed" : True,
                     "message": "Auction closed by owner"
-                })
+                    })
         else:
             if listing.user_name == request.user:
                 return render(request, "auctions/listingpage.html", {
                     "listing": listing,
+                    "bform" : BidForm(),
+                    "wform" : WatchlistForm(),
                     "auctionbidall" : list(AuctionBid.objects.all()),
                     "user_match" : True
                     })
             else:
                 return render(request, "auctions/listingpage.html", {
                     "listing": listing,
+                    "bform" : BidForm(),
+                    "wform" : WatchlistForm(),
                     "auctionbidall" : list(AuctionBid.objects.all()),
                     "user_match" : False
                     })
     else:
         return HttpResponseRedirect(reverse("index"))    
 
-def watchlist(request, listing_id):
-    if request.method == "POST":
-        listing = AuctionListing.objects.get(id = listing_id)
-        watchlist0 = ListingWatchlist(username_watchlist= request.user ,listingname_watchlist= listing.listingname,listingnameid_watchlist= listing.id)
-        watchlist0.save()
+def watchlist(request):
+    watchlist = list(ListingWatchlist.objects.all())
+    wuser = []
+    for w in watchlist:
+        if request.user == w.username_watchlist:
+             wuser.append(w)
+    if len(wuser) == 0:
+        return render(request, "auctions/watchlist.html",{
+            "message":"No listings entered"
+            })
     else:
-        watchlist = list(ListingWatchlist.objects.all())
-        wuser = []
-        for w in watchlist:
-            if request.user == w.username_watchlist:
-                wuser.append(w)
-        if len(wuser) == 0:
-            return render(request, "auctions/watchlist.html",{
-                "message":"No listings entered"
-                })
-        else:
-            return render(request, "auctions/watchlist.html",{
-                "listings": wuser
-                })
+        return render(request, "auctions/watchlist.html",{
+            "listings": wuser
+            })
 
 def category(request):
+    listingsall = list(AuctionListing.objects.all())
+    lcategories0 = []
+    lcategories = []
+    for listing in listingsall:
+        lcategories0.append(listing.listingcategory)
+    slcategories = set(lcategories0)
     return render(request, "auctions/category.html", {
-        "listings" : list(AuctionListing.objects.all())
+        "categories" : slcategories,
         })
 
+def speccategory(request,l_cat):
+    return render(request, "auctions/speccategory.html", {
+        "listings" : list(AuctionListing.objects.filter(listingcategory = l_cat))
+        })

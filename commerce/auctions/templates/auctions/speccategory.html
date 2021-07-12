@@ -3,13 +3,12 @@
 {% block body %}
 {% if user.is_authenticated %}
 <div>
-	{% for category in categories %}
+    {% for listing in listings %}
     <div>
-        <a href="{% url 'speccategory' category %}"><div>
-        {{ category }}</div></a>
+        <a href="{% url 'listingpage' listing.id %}"><div>
+        {{ listing }}</div></a>
     </div>
     {% endfor %}
-    {{ len }}
 </div>
 {% endif %}
 {% endblock %}

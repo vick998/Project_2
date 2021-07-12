@@ -1,6 +1,7 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
 <div>
 	<h1>{{ listing.listingname }}</h1>
     <div>Owner : {{ listing.user_name }}</div>
@@ -21,15 +22,16 @@
         <input class="btn btn-primary" type="submit" value="Close bidding">
         {% else %}
         <div class="form-group">
-            <input class="form-control" type="text" name="newbid" placeholder="Your bid">
+            {{bform.stvb}}
         </div>
         <input class="btn btn-primary" type="submit" value="Register bid">
         {% endif %}
         {% endif %}
     </form>
-    <form action="{% url 'watchlist' listing.id %}" method="post">
+    <form action="{% url 'listingpage' listing.id %}" method="post">
         {% csrf_token %}
-        <input class="btn btn-primary" type="submit" value="Add to watchlist">
+        {{ wform.stvw }}
+        <input class="btn btn-primary" type="submit" name="watchlist" value="Add to watchlist">
     </form>
     {% endif %}
     <div>Previous bids</div>
@@ -39,4 +41,5 @@
     {% endif %}
     {% endfor %}
 </div>
+
 {% endblock %}
