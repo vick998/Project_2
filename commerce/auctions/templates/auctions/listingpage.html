@@ -30,16 +30,44 @@
     </form>
     <form action="{% url 'listingpage' listing.id %}" method="post">
         {% csrf_token %}
-        {{ wform.stvw }}
+        {{ wform.stvw.as_hidden }}
         <input class="btn btn-primary" type="submit" name="watchlist" value="Add to watchlist">
     </form>
     {% endif %}
     <div>Previous bids</div>
     {% for auctionbid0 in auctionbidall %}
-    {% if auctionbid0.listingname_bid == listing.listingname %}
+    {% if auctionbid0.listingnameid_bid == listing.id %}
         <div>{{ auctionbid0 }}</div>
+        {% if user.is_superuser %}
+        <form action="{% url 'listingpage' listing.id %}" method="post">
+            {% csrf_token %}
+            {{ dbform.stvdel.as_hidden }}
+            <input type="submit" value="Delete">
+        </form>
+        {% endif %}
     {% endif %}
     {% endfor %}
+    <div>
+        <form action="{% url 'listingpage' listing.id %}" method="post">
+            {% csrf_token %}
+            {{ cform.stvcomm }}
+            <input type="submit" value="Post Comment">
+        </form>
+    </div>
+    <div>
+        {% for comm in lcommall %}
+        {% if comm.listingnameid_comm == listing.id %}
+            <div>{{ comm }}</div>
+            {% if user.is_superuser %}
+            <form action="{% url 'listingpage' listing.id %}" method="post">
+                {% csrf_token %}
+                {{ dcform.stvdel }} = {{ comm.id }}
+                <input type="submit" value="Delete">
+            </form>
+            {% endif %}
+        {% endif %}
+        {% endfor %}
+    </div>
 </div>
 
 {% endblock %}

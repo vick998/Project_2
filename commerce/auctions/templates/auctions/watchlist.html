@@ -5,8 +5,7 @@
 <div>
 	{% for listing in listings %}
     <div>
-        <a href="{% url 'listingpage' listing.id %}">
-        <div>{{ listing }}</div></a>
+        <a href="{% url 'listingpage' listing.id %}"><div>{{ listing }}</div></a>
         <div>{{ listing.listingcategory }}</div>
         <div>{{ listing.initbid }}</div>
         <img src="{{ listing.listingurl }}">

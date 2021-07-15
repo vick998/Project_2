@@ -20,13 +20,16 @@ class ListingForm(forms.Form):
     stvurl = forms.CharField()
     stvbid = forms.IntegerField()
 
+class CommentForm(forms.Form):
+    stvcomm = forms.CharField()
 
+class DeletionForm(forms.Form):
+    stvdel = forms.IntegerField(initial=True)
 
 def index(request):
     return render(request, "auctions/index.html", {
         "listings" : list(AuctionListing.objects.all())
         })
-
 
 def login_view(request):
     if request.method == "POST":
@@ -47,11 +50,9 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
-
 
 def register(request):
     if request.method == "POST":
@@ -79,99 +80,155 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
-def listentry(request):
+def listingsubexist(user_name_s, listingname_s, listingdesc_s, listingcategory_s, listingurl_s, initbid_s, liquid_s):
     listingentries = list(AuctionListing.objects.all())
-    if request.method == "POST":
-        listingdata = []
-        listingdata.append(request.user)
-        listingdata.append(request.POST["listingname"])
-        listingdata.append(request.POST["listingdesc"])
-        listingdata.append(request.POST["listingcategory"])
-        listingdata.append(request.POST["listingurl"])
-        listingdata.append(request.POST["initbid"])
-        # WIP, forms could be necessary
-        listing = AuctionListing(user_name=listingdata[0], listingname=listingdata[1], listingdesc=listingdata[2],  listingcategory=listingdata[3], listingurl=listingdata[4], initbid=listingdata[5])
-        k0 = 0
-        for lentry in listingentries:
-            listingdata0 = [lentry.user_name, lentry.listingname, lentry.listingdesc, lentry.listingcategory, lentry.listingurl, lentry.initbid]
-            k = 0
-            for i in range(0,len(listingdata)):
-                if listingdata[i] == listingdata0[i]:
-                    k += 1
-            if k == 6:
-                k0 += 1
-        if k0 != 0:
-            return render(request, "auctions/listingentry.html", {
-                   "message": "Listing already exists."
-                    })
-        else:
-                listing.save()
-            # redo for liquidity
-        return HttpResponseRedirect(reverse("listingpage", args=(listing.id,)))
-        # return HttpResponseRedirect(reverse("index"))
+    listingdata = [user_name_s, listingname_s, listingdesc_s, listingcategory_s, listingurl_s, int(initbid_s), liquid_s]
+    k0 = 0
+    for lentry in listingentries:
+        listingdata0 = [lentry.user_name, lentry.listingname, lentry.listingdesc, lentry.listingcategory, lentry.listingurl, int(lentry.initbid), lentry.liquid]
+        k = 0
+        for i in range(0,len(listingdata0)):
+            if listingdata[i] == listingdata0[i]:
+                k = k + 1
+        if k == 7:
+            k0 = k0 + 1
+    if k0 != 0:
+        return True
     else:
-        return render(request, "auctions/listingentry.html")
+        return False
+
+def listentry(request):
+    lform = ListingForm(request.POST)
+    if request.method == "POST":
+        if lform.is_valid():
+            user_name_s = request.user
+            listingname_s = lform.cleaned_data["stvname"]
+            listingdesc_s = lform.cleaned_data["stvdesc"]
+            listingcategory_s = lform.cleaned_data["stvcat"]
+            listingurl_s = lform.cleaned_data["stvurl"]
+            initbid_s = lform.cleaned_data["stvbid"]
+            liquid_s = True
+            if listingsubexist(user_name_s, listingname_s, listingdesc_s, listingcategory_s, listingurl_s, initbid_s, liquid_s) == True:
+                return render(request, "auctions/listingentry.html", {
+                    "lform": ListingForm(),
+                    "message": "Listing already exists."
+                    })
+            else:
+                listing = AuctionListing(user_name=user_name_s, listingname=listingname_s, listingdesc=listingdesc_s,  listingcategory=listingcategory_s, listingurl=listingurl_s, initbid=initbid_s, liquid=liquid_s)
+                listing.save()
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        return render(request, "auctions/listingentry.html", {
+            "lform": ListingForm()
+            })
 
 def listingpage(request, listing_id):
     listing = AuctionListing.objects.get(id=listing_id)
     auctionbidall = list(AuctionBid.objects.all())
     if request.user.is_authenticated:
         if request.method == "POST":
+            cform = CommentForm(request.POST)
             wform = WatchlistForm(request.POST)
             bform = BidForm(request.POST)
-            
+            dbform = DeletionForm(request.POST)
+            dcform = DeletionForm(request.POST)
             if listing.user_name != request.user:
-                # attempt to get wishlist form working, needs actual django forms to work
-                # if request.POST["watchlist"] == "Add to watchlist":
-                #     listing = AuctionListing.objects.get(id = listing_id)
-                #     watchlist0 = ListingWatchlist(username_watchlist= request.user ,listingname_watchlist= listing.listingname,listingnameid_watchlist= listing.id)
-                #     watchlist0.save()
-                #     return HttpResponseRedirect(reverse("listingpage", args=(listing.id,)))
-                # else:
-                username_bid_v = request.user
-                listingname_bid_v = listing.listingname
-                followbid_v = request.POST.get("newbid")
-                try:
-                    auctionbid = AuctionBid.objects.create(username_bid=username_bid_v, listingname_bid=listingname_bid_v, followbid=followbid_v)
-                    auctionbid.save()
-                    if int(auctionbid.followbid) > int(listing.initbid) :
-                        listing.initbid = auctionbid.followbid
-                        listing.save()
-                except IntegrityError:
-                    return HttpResponseRedirect(reverse("index"))
-                return render(request, "auctions/listingpage.html", {
-                    "listing": listing,
-                    "bform" : BidForm(),
-                    "wform" : WatchlistForm(),
-                    "auctionbidall" : list(AuctionBid.objects.all()),
-                    "message": "Your bid is " + auctionbid.followbid
-                    })
+                if bform.is_valid():
+                    username_bid_v = request.user
+                    listingname_bid_v = listing.listingname
+                    followbid_v = bform.cleaned_data["stvb"]
+                    try:
+                        auctionbid = AuctionBid.objects.create(username_bid=username_bid_v, listingname_bid=listingname_bid_v, listingnameid_bid=listing.id, followbid=followbid_v)
+                        auctionbid.save()
+                        if auctionbid.followbid > listing.initbid :
+                            listing.initbid = auctionbid.followbid
+                            listing.save()
+                    except IntegrityError:
+                        return HttpResponseRedirect(reverse("index"))
+                    return render(request, "auctions/listingpage.html", {
+                        "listing": listing,
+                        "bform" : BidForm(),
+                        "cform" : CommentForm(),
+                        "stvw": True,
+                        "wform" : WatchlistForm({"stvw": True}),
+                        "stvdel" : "comm.id",
+                        "stvdel" : "auctionbid0.id",
+                        "dcform" : DeletionForm({"stvdel" : "comm.id",}),
+                        "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
+                        "auctionbidall" : list(AuctionBid.objects.all()),
+                        "lcommall" : list(ListingComment.objects.all()),
+                        "message": "Your bid is " + str(auctionbid.followbid)
+                        })
             else:
                 listing.liquid = False
                 listing.save()
                 return render(request, "auctions/listingpage.html", {
                     "listing": listing,
                     "bform" : BidForm(),
-                    "wform" : WatchlistForm(),
+                    "cform" : CommentForm(),
+                    "stvw": True,
+                    "wform" : WatchlistForm({"stvw": True}),
+                    "stvdel" : "comm.id",
+                    "stvdel" : "auctionbid0.id",
+                    "dcform" : DeletionForm({"stvdel" : "comm.id",}),
+                    "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
                     "auctionbidall" : list(AuctionBid.objects.all()),
+                    "lcommall" : list(ListingComment.objects.all()),
                     "closed" : True,
                     "message": "Auction closed by owner"
                     })
+
+            if request.user.is_superuser:
+                if dbform.is_valid():
+                    delbid = dbform.cleaned_data["stvdel"]      
+                    AuctionBid.objects.get(id=delbid).delete()
+                return HttpResponseRedirect(reverse("index"))
+
+                if dcform.is_valid():
+                    delcomm = dcform.cleaned_data["stvdel"]    
+                    ListingComment.objects.get(id=delcomm).delete()
+                return HttpResponseRedirect(reverse("index"))
+
+            if cform.is_valid():
+                listing_comm_s = cform.cleaned_data["stvcomm"]    
+                clisting = ListingComment(username_comm=request.user, listingname_comm=listing.listingname, listingnameid_comm=listing.id, listing_comm=listing_comm_s)
+                clisting.save()
+                return HttpResponseRedirect(reverse("index"))
+
+            if wform.is_valid():
+                wlisting = ListingWatchlist(username_watchlist=request.user, listingname_watchlist=listing.listingname, listingnameid_watchlist=listing.id)
+                wlisting.save()
+                return HttpResponseRedirect(reverse("watchlist"))
         else:
             if listing.user_name == request.user:
                 return render(request, "auctions/listingpage.html", {
                     "listing": listing,
                     "bform" : BidForm(),
-                    "wform" : WatchlistForm(),
+                    "cform" : CommentForm(),
+                    "stvw": True,
+                    "wform" : WatchlistForm({"stvw": True}),
+                    "stvdel" : "comm.id",
+                    "stvdel" : "auctionbid0.id",
+                    "dcform" : DeletionForm({"stvdel" : "comm.id",}),
+                    "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
                     "auctionbidall" : list(AuctionBid.objects.all()),
+                    "lcommall" : list(ListingComment.objects.all()),
                     "user_match" : True
                     })
             else:
                 return render(request, "auctions/listingpage.html", {
                     "listing": listing,
                     "bform" : BidForm(),
-                    "wform" : WatchlistForm(),
+                    "cform" : CommentForm(),
+                    "stvw": True,
+                    "wform" : WatchlistForm({"stvw": True}),
+                    "stvdel" : "comm.id",
+                    "stvdel" : "auctionbid0.id",
+                    "dcform" : DeletionForm({"stvdel" : "comm.id",}),
+                    "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
                     "auctionbidall" : list(AuctionBid.objects.all()),
+                    # filters?
+                    "lcommall" : list(ListingComment.objects.all()),
                     "user_match" : False
                     })
     else:
@@ -188,8 +245,17 @@ def watchlist(request):
             "message":"No listings entered"
             })
     else:
+        wuser0 = []
+        listings0 = []
+        for w in wuser:
+            wuser0.append(int(w.listingnameid_watchlist))
+        listings = list(AuctionListing.objects.all())
+        for w in wuser0:
+            for l in listings:
+                if w == l.id:
+                    listings0.append(l)
         return render(request, "auctions/watchlist.html",{
-            "listings": wuser
+            "listings": listings0
             })
 
 def category(request):
