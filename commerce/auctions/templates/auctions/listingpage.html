@@ -37,13 +37,14 @@
     <div>Previous bids</div>
     {% for auctionbid0 in auctionbidall %}
     {% if auctionbid0.listingnameid_bid == listing.id %}
-        <div>{{ auctionbid0 }}</div>
+        <div>{{ auctionbid0 }}
         {% if user.is_superuser %}
         <form action="{% url 'listingpage' listing.id %}" method="post">
             {% csrf_token %}
             {{ dbform.stvdel.as_hidden }}
             <input type="submit" value="Delete">
         </form>
+        </div>
         {% endif %}
     {% endif %}
     {% endfor %}
@@ -57,13 +58,14 @@
     <div>
         {% for comm in lcommall %}
         {% if comm.listingnameid_comm == listing.id %}
-            <div>{{ comm }}</div>
+            <div>{{ comm }}
             {% if user.is_superuser %}
             <form action="{% url 'listingpage' listing.id %}" method="post">
                 {% csrf_token %}
-                {{ dcform.stvdel }} = {{ comm.id }}
+                {{ dcform.stvdel.as_hidden }}
                 <input type="submit" value="Delete">
             </form>
+            </div>
             {% endif %}
         {% endif %}
         {% endfor %}

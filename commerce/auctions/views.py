@@ -24,7 +24,8 @@ class CommentForm(forms.Form):
     stvcomm = forms.CharField()
 
 class DeletionForm(forms.Form):
-    stvdel = forms.IntegerField(initial=True)
+    stvdel = forms.BooleanField(initial=True)
+    stvdelid = forms.IntegerField()
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -151,10 +152,9 @@ def listingpage(request, listing_id):
                         "cform" : CommentForm(),
                         "stvw": True,
                         "wform" : WatchlistForm({"stvw": True}),
-                        "stvdel" : "comm.id",
-                        "stvdel" : "auctionbid0.id",
-                        "dcform" : DeletionForm({"stvdel" : "comm.id",}),
-                        "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
+                        "stvdelid":listing.id,
+                        "dcform" : DeletionForm(),
+                        "dbform" : DeletionForm({"stvdelid":listing.id}),
                         "auctionbidall" : list(AuctionBid.objects.all()),
                         "lcommall" : list(ListingComment.objects.all()),
                         "message": "Your bid is " + str(auctionbid.followbid)
@@ -167,11 +167,10 @@ def listingpage(request, listing_id):
                     "bform" : BidForm(),
                     "cform" : CommentForm(),
                     "stvw": True,
+                    "stvdelid":listing.id,
                     "wform" : WatchlistForm({"stvw": True}),
-                    "stvdel" : "comm.id",
-                    "stvdel" : "auctionbid0.id",
-                    "dcform" : DeletionForm({"stvdel" : "comm.id",}),
-                    "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
+                    "dcform" : DeletionForm(),
+                    "dbform" : DeletionForm({"stvdelid":listing.id}),
                     "auctionbidall" : list(AuctionBid.objects.all()),
                     "lcommall" : list(ListingComment.objects.all()),
                     "closed" : True,
