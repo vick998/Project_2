@@ -1,6 +1,13 @@
 {% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'auctions\listingentry.css' %}">
+{% endblock %}
 
 {% block body %}
+<h3>New Auction Entry</h3>
+<br>
 <div>
     {% if user.is_authenticated %}
 	<form action="{% url 'listentry' %}" method="post">
@@ -23,7 +30,7 @@
         <div class="form-group">
             {{ lform.stvbid }}
         </div>
-        <input class="btn btn-primary" type="submit" value="Register">
+        <input class="btn btn-primary" type="submit" id="subbtn" value="Register">
     </form>
     {% else %}
     Not signed in.

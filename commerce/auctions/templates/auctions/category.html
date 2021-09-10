@@ -1,7 +1,6 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-{% if user.is_authenticated %}
 <div>
 	{% for category in categories %}
     <div>
@@ -9,7 +8,5 @@
         {{ category }}</div></a>
     </div>
     {% endfor %}
-    {{ len }}
 </div>
-{% endif %}
 {% endblock %}

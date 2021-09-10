@@ -1,0 +1,16 @@
+#id_stvname, #id_stvdesc, #id_stvcat, #id_stvurl, #id_stvbid, #subbtn{
+	width: 300px;
+	border-radius: 10px;
+}
+
+#subbtn {
+	background-color: gray;
+	border-color: gray;
+	text-align: center;
+	font-weight: bold;
+	border-radius: 10px;
+}
+
+#id_stvdesc {
+	height: 300px;
+}

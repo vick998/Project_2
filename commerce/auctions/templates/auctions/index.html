@@ -1,4 +1,9 @@
 {% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'auctions\index.css' %}">
+{% endblock %}
 
 {% block body %}
     <h2>Active Listings</h2>
@@ -6,7 +11,16 @@
     <ul>
         {% for listing in listings %}
         {% if listing.liquid %}
-        <li><a href="{% url 'listingpage' listing.id %}">{{ listing }}</a></li>
+        <li class="products">
+        <a href="{% url 'listingpage' listing.id %}">
+            <div class="productsdiv">
+            <img class="productimg" src="{{ listing.listingurl }}">
+            <h4 class="productname">{{ listing.listingname }}</h1>
+            <h5 class="productprice">Price: ${{ listing.initbid }}.00</h2>
+            <p class="productdesc">{{ listing.listingdesc }}</p>
+            </div>
+        </a>
+        </li>
         {% endif %}
         {% endfor %}
     </ul>

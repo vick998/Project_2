@@ -7,18 +7,23 @@ from django import forms
 
 from .models import AuctionListing, AuctionBid, ListingComment, ListingWatchlist
 
+# cute bug, using the same form in a different instance confuses the is_valid clause
+
 class WatchlistForm(forms.Form):
     stvw = forms.BooleanField(initial=False)
+
+class CloseForm(forms.Form):
+    stvcf = forms.BooleanField(initial=False)
 
 class BidForm(forms.Form):
     stvb = forms.IntegerField(label="newbid")
 
 class ListingForm(forms.Form):
-    stvname = forms.CharField()
-    stvdesc = forms.CharField()
-    stvcat = forms.CharField()
-    stvurl = forms.CharField()
-    stvbid = forms.IntegerField()
+    stvname = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Name'}))
+    stvdesc = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Description'}))
+    stvcat = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Category'}))
+    stvurl = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Image URL'}))
+    stvbid = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Starting Bid'}))
 
 class CommentForm(forms.Form):
     stvcomm = forms.CharField()
@@ -81,6 +86,7 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
+
 def listingsubexist(user_name_s, listingname_s, listingdesc_s, listingcategory_s, listingurl_s, initbid_s, liquid_s):
     listingentries = list(AuctionListing.objects.all())
     listingdata = [user_name_s, listingname_s, listingdesc_s, listingcategory_s, listingurl_s, int(initbid_s), liquid_s]
@@ -97,6 +103,7 @@ def listingsubexist(user_name_s, listingname_s, listingdesc_s, listingcategory_s
         return True
     else:
         return False
+
 
 def listentry(request):
     lform = ListingForm(request.POST)
@@ -123,115 +130,135 @@ def listentry(request):
             "lform": ListingForm()
             })
 
+
 def listingpage(request, listing_id):
     listing = AuctionListing.objects.get(id=listing_id)
-    auctionbidall = list(AuctionBid.objects.all())
-    if request.user.is_authenticated:
-        if request.method == "POST":
-            cform = CommentForm(request.POST)
-            wform = WatchlistForm(request.POST)
-            bform = BidForm(request.POST)
-            dbform = DeletionForm(request.POST)
-            dcform = DeletionForm(request.POST)
-            if listing.user_name != request.user:
-                if bform.is_valid():
-                    username_bid_v = request.user
-                    listingname_bid_v = listing.listingname
-                    followbid_v = bform.cleaned_data["stvb"]
-                    try:
-                        auctionbid = AuctionBid.objects.create(username_bid=username_bid_v, listingname_bid=listingname_bid_v, listingnameid_bid=listing.id, followbid=followbid_v)
-                        auctionbid.save()
-                        if auctionbid.followbid > listing.initbid :
-                            listing.initbid = auctionbid.followbid
-                            listing.save()
-                    except IntegrityError:
-                        return HttpResponseRedirect(reverse("index"))
-                    return render(request, "auctions/listingpage.html", {
-                        "listing": listing,
-                        "bform" : BidForm(),
-                        "cform" : CommentForm(),
-                        "stvw": True,
-                        "wform" : WatchlistForm({"stvw": True}),
-                        "stvdelid":listing.id,
-                        "dcform" : DeletionForm(),
-                        "dbform" : DeletionForm({"stvdelid":listing.id}),
-                        "auctionbidall" : list(AuctionBid.objects.all()),
-                        "lcommall" : list(ListingComment.objects.all()),
-                        "message": "Your bid is " + str(auctionbid.followbid)
-                        })
-            else:
-                listing.liquid = False
-                listing.save()
-                return render(request, "auctions/listingpage.html", {
-                    "listing": listing,
-                    "bform" : BidForm(),
-                    "cform" : CommentForm(),
-                    "stvw": True,
-                    "stvdelid":listing.id,
-                    "wform" : WatchlistForm({"stvw": True}),
-                    "dcform" : DeletionForm(),
-                    "dbform" : DeletionForm({"stvdelid":listing.id}),
-                    "auctionbidall" : list(AuctionBid.objects.all()),
-                    "lcommall" : list(ListingComment.objects.all()),
-                    "closed" : True,
-                    "message": "Auction closed by owner"
+    if request.method == "POST":
+        cform = CommentForm(request.POST)
+        wform = WatchlistForm(request.POST)
+        bform = BidForm(request.POST)
+        delform = CloseForm(request.POST)
+        dbform = DeletionForm(request.POST)
+        dcform = DeletionForm(request.POST)
+        if bform.is_valid():
+            username_bid_v = request.user
+            listingname_bid_v = listing.listingname
+            followbid_v = bform.cleaned_data["stvb"]
+            try:
+                auctionbid = AuctionBid.objects.create(username_bid=username_bid_v, listingname_bid=listingname_bid_v, listingnameid_bid=listing.id, followbid=followbid_v)
+                auctionbid.save()
+                if auctionbid.followbid > listing.initbid :
+                    listing.initbid = auctionbid.followbid
+                    listing.save()
+            except IntegrityError:
+                return HttpResponseRedirect(reverse("index"))
+            return render(request, "auctions/listingpage.html", {
+                "listing": listing,
+                "bform" : BidForm(),
+                "cform" : CommentForm(),
+                # "stvw": True,
+                "wform" : WatchlistForm(),
+                "delform" : CloseForm(),
+                # "stvdelid":listing.id,
+                # "dcform" : DeletionForm(),
+                # "dbform" : DeletionForm({"stvdelid":listing.id}),
+                "auctionbidall" : list(AuctionBid.objects.all()),
+                "wlisting" : wlist(request.user),
+                "lcommall" : list(ListingComment.objects.all()),
+                "message": "Your bid is " + str(auctionbid.followbid),
+                "user_match" : False
+                })
+
+        if delform.is_valid():
+            listing.liquid = False
+            listing.save()
+            return render(request, "auctions/listingpage.html", {
+                "listing": listing,
+                "bform" : BidForm(),
+                "cform" : CommentForm(),
+                # "stvw": True,
+                # "stvdelid":listing.id,
+                "wform" : WatchlistForm(),
+                "delform" : CloseForm(),
+                # "dcform" : DeletionForm(),
+                # "dbform" : DeletionForm({"stvdelid":listing.id}),
+                "auctionbidall" : list(AuctionBid.objects.all()),
+                "wlisting" : wlist(request.user),
+                "lcommall" : list(ListingComment.objects.all()),
+                "closed" : True,
+                "message": "Auction closed by owner",
+                "user_match" : True
                     })
 
-            if request.user.is_superuser:
-                if dbform.is_valid():
-                    delbid = dbform.cleaned_data["stvdel"]      
-                    AuctionBid.objects.get(id=delbid).delete()
-                return HttpResponseRedirect(reverse("index"))
+        if cform.is_valid():
+            listing_comm_s = cform.cleaned_data["stvcomm"]    
+            clisting = ListingComment(username_comm=request.user, listingname_comm=listing.listingname, listingnameid_comm=listing.id, listing_comm=listing_comm_s)
+            clisting.save()
+            return HttpResponseRedirect(reverse("index"))
 
-                if dcform.is_valid():
-                    delcomm = dcform.cleaned_data["stvdel"]    
-                    ListingComment.objects.get(id=delcomm).delete()
-                return HttpResponseRedirect(reverse("index"))
+        if wform.is_valid():
+            wlisting = ListingWatchlist(username_watchlist=request.user, listingname_watchlist=listing.listingname, listingnameid_watchlist=listing.id)
+            wlisting.save()
+            return HttpResponseRedirect(reverse("watchlist"))
 
-            if cform.is_valid():
-                listing_comm_s = cform.cleaned_data["stvcomm"]    
-                clisting = ListingComment(username_comm=request.user, listingname_comm=listing.listingname, listingnameid_comm=listing.id, listing_comm=listing_comm_s)
-                clisting.save()
-                return HttpResponseRedirect(reverse("index"))
+        # if request.user.is_superuser:
+        #     if dbform.is_valid():
+        #         delbid = dbform.cleaned_data["stvdel"]      
+        #         AuctionBid.objects.get(id=delbid).delete()
+        #     return HttpResponseRedirect(reverse("index"))
 
-            if wform.is_valid():
-                wlisting = ListingWatchlist(username_watchlist=request.user, listingname_watchlist=listing.listingname, listingnameid_watchlist=listing.id)
-                wlisting.save()
-                return HttpResponseRedirect(reverse("watchlist"))
-        else:
-            if listing.user_name == request.user:
-                return render(request, "auctions/listingpage.html", {
-                    "listing": listing,
-                    "bform" : BidForm(),
-                    "cform" : CommentForm(),
-                    "stvw": True,
-                    "wform" : WatchlistForm({"stvw": True}),
-                    "stvdel" : "comm.id",
-                    "stvdel" : "auctionbid0.id",
-                    "dcform" : DeletionForm({"stvdel" : "comm.id",}),
-                    "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
-                    "auctionbidall" : list(AuctionBid.objects.all()),
-                    "lcommall" : list(ListingComment.objects.all()),
-                    "user_match" : True
-                    })
-            else:
-                return render(request, "auctions/listingpage.html", {
-                    "listing": listing,
-                    "bform" : BidForm(),
-                    "cform" : CommentForm(),
-                    "stvw": True,
-                    "wform" : WatchlistForm({"stvw": True}),
-                    "stvdel" : "comm.id",
-                    "stvdel" : "auctionbid0.id",
-                    "dcform" : DeletionForm({"stvdel" : "comm.id",}),
-                    "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
-                    "auctionbidall" : list(AuctionBid.objects.all()),
-                    # filters?
-                    "lcommall" : list(ListingComment.objects.all()),
-                    "user_match" : False
-                    })
+        #     if dcform.is_valid():
+        #         delcomm = dcform.cleaned_data["stvdel"]    
+        #         ListingComment.objects.get(id=delcomm).delete()
+        #     return HttpResponseRedirect(reverse("index"))
+
     else:
-        return HttpResponseRedirect(reverse("index"))    
+        if listing.user_name == request.user:
+            return render(request, "auctions/listingpage.html", {
+                "listing": listing,
+                "bform" : BidForm(),
+                "cform" : CommentForm(),
+                # "stvw": True,
+                "wform" : WatchlistForm(),
+                "delform" : CloseForm(),
+                # "stvdel" : "comm.id",
+                # "stvdel" : "auctionbid0.id",
+                # "dcform" : DeletionForm({"stvdel" : "comm.id",}),
+                # "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
+                "auctionbidall" : list(AuctionBid.objects.all()),
+                "wlisting" : wlist(request.user),
+                "lcommall" : list(ListingComment.objects.all()),
+                "user_match" : True
+                })
+        else:
+            return render(request, "auctions/listingpage.html", {
+                "listing": listing,
+                "bform" : BidForm(),
+                "cform" : CommentForm(),
+                # "stvw": True,
+                "wform" : WatchlistForm(),
+                "delform" : CloseForm(),
+                # "stvdel" : "comm.id",
+                # "stvdel" : "auctionbid0.id",
+                # "dcform" : DeletionForm({"stvdel" : "comm.id",}),
+                # "dbform" : DeletionForm({"stvdel" : "auctionbid0.id"}),
+                "auctionbidall" : list(AuctionBid.objects.all()),
+                "wlisting" : wlist(request.user),
+                "lcommall" : list(ListingComment.objects.all()),
+                "user_match" : False
+                })
+
+def admlistingpage(request,listing_id):
+    pass
+
+
+def wlist(user):
+    wlisting1 = []
+    wlisting = list(ListingWatchlist.objects.all())
+    for w in wlisting:
+        if w.username_watchlist == user:
+            wlisting1.append(w.listingnameid_watchlist)
+    return wlisting1
 
 def watchlist(request):
     watchlist = list(ListingWatchlist.objects.all())

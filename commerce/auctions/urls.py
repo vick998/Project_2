@@ -11,5 +11,6 @@ urlpatterns = [
     path("<int:listing_id>", views.listingpage, name="listingpage"),
     path("watchlist", views.watchlist, name="watchlist"),
     path("category", views.category, name="category"),
-    path("category/<str:l_cat>", views.speccategory, name="speccategory")
+    path("category/<str:l_cat>", views.speccategory, name="speccategory"),
+    path("admin/<int:listing_id>", views.admlistingpage, name="admlistingpage")
 ]

@@ -1,75 +1,122 @@
 {% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'auctions\listingpage.css' %}">
+{% endblock %}
+
 
 {% block body %}
 
-<div>
-	<h1>{{ listing.listingname }}</h1>
-    <div>Owner : {{ listing.user_name }}</div>
-	<div>Category : {{ listing.listingcategory }}</div>
-	<div>Description : {{ listing.listingdesc }}</div>
-	<div>Current highest bid : {{ listing.initbid }}</div>
-	<img src="{{ listingurl }}">
-    {% if message %}
+    <div id="listing1">
+	    <h1>Listing: {{ listing.listingname }}</h1>
+        <br>
+        <img src="{{ listing.listingurl }}" id="lpic">
+        <br>
+        <h4>{{ listing.listingdesc }}</h4>
+        <br>
+	    <h2>${{ listing.initbid }}.00</h2>
+
+        {% if message %}
         <div>{{ message }}</div>
-    {% endif %}
-    {% if user.is_authenticated %}
-	<form action="{% url 'listingpage' listing.id %}" method="post">
-        {% csrf_token %}
-        {% if closed %}
-        <div>Auction closed at {{ listing.initbid }}</div>
-        {% else %}
+        {% endif %}
+
         {% if user_match %}
-        <input class="btn btn-primary" type="submit" value="Close bidding">
+        <form action="{% url 'listingpage' listing.id %}" method="post" class="forms1">
+        {% csrf_token %}
+        <span class="form-group">
+            {{delform.stvcf}}
+        </span>
+        <input class="btn btn-primary" type="submit" name="delform" class="subs" id="delinput" value="Close bidding">
+        </form>
         {% else %}
-        <div class="form-group">
+	   <form action="{% url 'listingpage' listing.id %}" method="post" class="forms2">
+        {% csrf_token %}
+        <div id="bidinput" class="form-group">
             {{bform.stvb}}
         </div>
-        <input class="btn btn-primary" type="submit" value="Register bid">
+        <input class="btn btn-primary" type="submit" id="bidinput1" class="subs" name="bform" value="Register bid">
+        </form>
         {% endif %}
+
+        {% if closed %}
+        <div>Auction closed at {{ listing.initbid }}</div>
         {% endif %}
-    </form>
-    <form action="{% url 'listingpage' listing.id %}" method="post">
+
+        {% if listing.id in wlisting %}
+        <div id="wbutton">Watchlist</div>
+        {% else %}
+        <form action="{% url 'listingpage' listing.id %}" method="post"  class="forms1">
         {% csrf_token %}
-        {{ wform.stvw.as_hidden }}
-        <input class="btn btn-primary" type="submit" name="watchlist" value="Add to watchlist">
-    </form>
-    {% endif %}
-    <div>Previous bids</div>
-    {% for auctionbid0 in auctionbidall %}
-    {% if auctionbid0.listingnameid_bid == listing.id %}
-        <div>{{ auctionbid0 }}
+        <span>
+        {{ wform.stvw }}
+        </span>
+        <input class="btn btn-primary" type="submit" id="winput" class="subs" name="watchlist" value="Add to watchlist">
+        </form>
+        {% endif %}
+
+    </div>
+
+    <div id="bids">
+        <h4>Previous bids</h4>
+        {% for auctionbid0 in auctionbidall %}
+        {% if auctionbid0.listingnameid_bid == listing.id %}
+        <div>
+        <ul>
+        <li class="bids1">
+        <div>
+            <h5>${{ auctionbid0.followbid }}({{ auctionbid0.username_bid }})</h5>
+        </div>
         {% if user.is_superuser %}
         <form action="{% url 'listingpage' listing.id %}" method="post">
             {% csrf_token %}
             {{ dbform.stvdel.as_hidden }}
             <input type="submit" value="Delete">
         </form>
+        {% endif %}
+        </li>
+        </ul>
         </div>
         {% endif %}
-    {% endif %}
-    {% endfor %}
-    <div>
-        <form action="{% url 'listingpage' listing.id %}" method="post">
-            {% csrf_token %}
-            {{ cform.stvcomm }}
-            <input type="submit" value="Post Comment">
-        </form>
+        {% endfor %}
     </div>
-    <div>
+
+    <div id="details">
+        <h4>Details</h4>
+        <ul>  
+        <li>Listed by: {{ listing.user_name }}</li>
+        <li>Category: {{ listing.listingcategory }}</li>
+        </ul>  
+    </div>
+
+    <div id="comments">
+        <h4>Comments</h4>
         {% for comm in lcommall %}
         {% if comm.listingnameid_comm == listing.id %}
-            <div>{{ comm }}
+            <div>
+            <ul>   
+            <li class="comms1">
+            <div>
+            <h5>{{ comm.listing_comm }}</h5>
+            <p>{{ comm.username_comm }}, comm.datetime</p>    
+            </div>
             {% if user.is_superuser %}
             <form action="{% url 'listingpage' listing.id %}" method="post">
                 {% csrf_token %}
                 {{ dcform.stvdel.as_hidden }}
                 <input type="submit" value="Delete">
             </form>
-            </div>
             {% endif %}
+            </li>
+            <ul>
+            </div>
         {% endif %}
         {% endfor %}
+        <form action="{% url 'listingpage' listing.id %}" method="post">
+            {% csrf_token %}
+            {{ cform.stvcomm }}
+            <input type="submit" value="Post Comment">
+        </form>
     </div>
-</div>
 
 {% endblock %}

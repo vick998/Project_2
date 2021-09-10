@@ -1,0 +1,38 @@
+.forms1 {
+	display: block;
+	font-weight: bolder;
+	background-color: gray;
+	border-radius: 10px;
+	text-align: center;
+	width: 200px;
+}
+
+ul 	{
+	list-style-type: none;
+}
+
+#id_stvb {
+	width: 500px;
+}
+
+#wbutton {
+	position: relative;
+	display: block;
+	background-color: gray;
+	color: white;
+	font-weight: bolder;
+	padding: 2px 6px 2px 6px;
+	border-radius: 10px;
+	width: 100px;
+	top: 2px;
+	left: 20px;
+	text-align: center;
+}
+
+#delinput, #winput, #bidinput1 {
+	background-color: gray;
+	border-color: gray;
+	text-align: center;
+	font-weight: bold;
+	border-radius: 10px;
+}
