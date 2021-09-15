@@ -1,0 +1,120 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'auctions\listingpage.css' %}">
+{% endblock %}
+
+
+{% block body %}
+
+    <div id="listing1">
+	    <h1>Listing: {{ listing.listingname }}</h1>
+        <br>
+        <img src="{{ listing.listingurl }}" id="lpic">
+        <br>
+        <h4>{{ listing.listingdesc }}</h4>
+        <br>
+	    <h2>${{ listing.initbid }}.00</h2>
+
+        {% if message %}
+        <div>{{ message }}</div>
+        {% endif %}
+
+
+        <form action="{% url 'listingpage' listing.id %}" method="post" class="forms1">
+        {% csrf_token %}
+        <span class="form-group">
+            {{delform.stvcf}}
+        </span>
+        <input class="btn btn-primary" type="submit" name="delform" class="subs" id="delinput" value="Close bidding">
+        </form>
+
+	   <form action="{% url 'listingpage' listing.id %}" method="post" class="forms2">
+        {% csrf_token %}
+        <div id="bidinput" class="form-group">
+            {{bform.stvb}}
+        </div>
+        <input class="btn btn-primary" type="submit" id="bidinput1" class="subs" name="bform" value="Register bid">
+        </form>
+
+
+        {% if closed %}
+        <div>Auction closed at {{ listing.initbid }}</div>
+        {% endif %}
+
+        {% if listing.id in wlisting %}
+        <div id="wbutton">Watchlist</div>
+        {% else %}
+        <form action="{% url 'listingpage' listing.id %}" method="post"  class="forms1">
+        {% csrf_token %}
+        <span>
+        {{ wform.stvw }}
+        </span>
+        <input class="btn btn-primary" type="submit" id="winput" class="subs" name="watchlist" value="Add to watchlist">
+        </form>
+        {% endif %}
+
+    </div>
+
+    <div id="bids">
+        <h4>Previous bids</h4>
+        {% for auctionbid0 in auctionbidall %}
+        <div>
+        <ul>
+        <li class="bids1">
+        <div>
+            <h5>${{ auctionbid0.followbid }}({{ auctionbid0.username_bid }})</h5>
+        </div>
+
+        <form action="{% url 'listingpage' listing.id %}" method="post">
+            {% csrf_token %}
+            {{ dbform.stvdel }}
+            {{ dbform.stvdelid.as_hidden}}
+            <input type="submit" value="Delete">
+        </form>
+
+        </li>
+        </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="details">
+        <h4>Details</h4>
+        <ul>  
+        <li>Listed by: {{ listing.user_name }}</li>
+        <li>Category: {{ listing.listingcategory }}</li>
+        </ul>  
+    </div>
+
+    <div id="comments">
+        <h4>Comments</h4>
+        {% for comm in lcommall %}
+            <div>
+            <ul>   
+            <li class="comms1">
+            <div>
+            <h5>{{ comm.listing_comm }}</h5>
+            <p>{{ comm.username_comm }}, comm.datetime</p>    
+            </div>
+
+            <form action="{% url 'listingpage' listing.id %}" method="post">
+                {% csrf_token %}
+                {{ dcform.stvdel }}
+                {{ dbform.stvdelid.as_hidden}}
+                <input type="submit" value="Delete">
+            </form>
+
+            </li>
+            <ul>
+            </div>
+        {% endfor %}
+        <form action="{% url 'listingpage' listing.id %}" method="post">
+            {% csrf_token %}
+            {{ cform.stvcomm }}
+            <input type="submit" value="Post Comment">
+        </form>
+    </div>
+
+{% endblock %}
