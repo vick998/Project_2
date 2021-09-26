@@ -2,16 +2,17 @@
 {% load static %}
 
 {% block head %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'auctions\index.css' %}">
 {% endblock %}
 
 {% block body %}
 {% if user.is_authenticated %}
 <div>
-    <ul>
+    <ul class="list-group">
         {% for listing in listings %}
         {% if listing.liquid %}
-        <li class="products">
+        <li class="list-group-item">
         <a href="{% url 'listingpage' listing.id %}">
             <div class="productsdiv">
             <img class="productimg" src="{{ listing.listingurl }}">

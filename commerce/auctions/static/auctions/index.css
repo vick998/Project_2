@@ -4,7 +4,6 @@
 	text-decoration: none;
 
 }
-
 a:hover{
 	text-decoration: none;
 }
@@ -14,12 +13,6 @@ ul{
 	padding: 0;
 }
 
-.products{
-	border: 1px solid gray;
-	border-radius: 1%;
-	margin-bottom: 1%;
-	height: 220px;
-}
 .productname, .productprice, .productdesc{
 	position: relative;
 	left: 30%;
